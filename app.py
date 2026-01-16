@@ -60,7 +60,14 @@ def apply_cors(resp):
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ----------------- Load Model -----------------
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+# model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+    return model
 
 # ----------------- Load Chat Data -----------------
 with open(os.path.join(BASE_DIR, "chat_knowledge.json"), "r", encoding="utf-8") as f:
@@ -71,10 +78,17 @@ def similarity(a,b):
     return SequenceMatcher(None,a,b).ratio()
 
 # ----------------- MySQL Setup -----------------
-app.config["MYSQL_HOST"] = "localhost"
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "Man@6jan"
-app.config["MYSQL_DB"] = "demnet_db"
+# app.config["MYSQL_HOST"] = "localhost"
+# app.config["MYSQL_USER"] = "root"
+# app.config["MYSQL_PASSWORD"] = "Man@6jan"
+# app.config["MYSQL_DB"] = "demnet_db"
+
+app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
+app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
+app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
+app.config["MYSQL_DB"] = os.getenv("MYSQL_DATABASE")
+app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT", 3306))
+
 mysql = MySQL(app)
 
 # # ----------------- Load Chat Data -----------------
@@ -177,7 +191,8 @@ def predict():
 
     # Model prediction
     img_array = preprocess_image(path)
-    preds = model.predict(img_array)[0]
+    # preds = model.predict(img_array)[0]
+    preds = get_model().predict(img_array)[0]
     idx = int(np.argmax(preds))
     confidence = round(float(preds[idx]) * 100, 2)
 
@@ -598,4 +613,6 @@ def view_report(mri_id):
 
 # ----------------- Run App -----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
+# app.config["MYSQL_HOST"] = "localhost"
