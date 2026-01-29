@@ -117,12 +117,15 @@ def login():
     cur.close()
 
     if user and check_password_hash(user[3], data["password"]):
-        session["user_id"] = user[0]
         return jsonify({
-            "status": "success",
-            "name": user[1],
-            "email": user[2]
-        })
+    "status": "success",
+    "user": {
+        "id": user[0],
+        "name": user[1],
+        "email": user[2]
+    }
+})
+
 
     return jsonify({"status": "error"})
 
@@ -235,3 +238,4 @@ def health():
 # --------------------------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
